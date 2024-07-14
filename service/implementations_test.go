@@ -1,6 +1,7 @@
 package service
 
 import (
+	"errors"
 	"reflect"
 	"testing"
 
@@ -17,18 +18,18 @@ func TestService_AddEstate(t *testing.T) {
 	id := uuid.New()
 
 	repoMock := repository.NewMockRepositoryInterface(ctrl)
-	repoMock.EXPECT().AddEstate(gomock.Any(), gomock.Any()).Return(id, nil)
 
 	type args struct {
 		width  int
 		length int
 	}
 	tests := []struct {
-		name    string
-		s       *Service
-		args    args
-		want    uuid.UUID
-		wantErr bool
+		name      string
+		s         *Service
+		args      args
+		want      uuid.UUID
+		wantErr   bool
+		setupMock func()
 	}{
 		{
 			name: "1. normal case",
@@ -41,10 +42,81 @@ func TestService_AddEstate(t *testing.T) {
 			},
 			want:    id,
 			wantErr: false,
+			setupMock: func() {
+				repoMock.EXPECT().AddEstate(gomock.Any(), gomock.Any()).Return(id, nil)
+			},
+		},
+		{
+			name: "2. repository returns error",
+			s: &Service{
+				repo: repoMock,
+			},
+			args: args{
+				width:  10,
+				length: 10,
+			},
+			want:    uuid.Nil,
+			wantErr: true,
+			setupMock: func() {
+				repoMock.EXPECT().AddEstate(gomock.Any(), gomock.Any()).Return(uuid.Nil, errors.New("repository error"))
+			},
+		},
+		{
+			name: "3. zero width",
+			s: &Service{
+				repo: repoMock,
+			},
+			args: args{
+				width:  0,
+				length: 10,
+			},
+			want:      uuid.Nil, // assuming the service returns a nil UUID in this case
+			wantErr:   true,
+			setupMock: func() {},
+		},
+		{
+			name: "4. zero length",
+			s: &Service{
+				repo: repoMock,
+			},
+			args: args{
+				width:  10,
+				length: 0,
+			},
+			want:      uuid.Nil, // assuming the service returns a nil UUID in this case
+			wantErr:   true,
+			setupMock: func() {},
+		},
+		{
+			name: "5. negative width",
+			s: &Service{
+				repo: repoMock,
+			},
+			args: args{
+				width:  -10,
+				length: 10,
+			},
+			want:      uuid.Nil, // assuming the service returns a nil UUID in this case
+			wantErr:   true,
+			setupMock: func() {},
+		},
+		{
+			name: "6. negative length",
+			s: &Service{
+				repo: repoMock,
+			},
+			args: args{
+				width:  10,
+				length: -10,
+			},
+			want:      uuid.Nil, // assuming the service returns a nil UUID in this case
+			wantErr:   true,
+			setupMock: func() {},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			tt.setupMock()
 			got, err := tt.s.AddEstate(tt.args.width, tt.args.length)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Service.AddEstate() error = %v, wantErr %v", err, tt.wantErr)
@@ -64,7 +136,6 @@ func TestService_AddTree(t *testing.T) {
 	id := uuid.New()
 
 	repoMock := repository.NewMockRepositoryInterface(ctrl)
-	repoMock.EXPECT().AddTree(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(id, nil)
 
 	type args struct {
 		estateID uuid.UUID
@@ -73,11 +144,12 @@ func TestService_AddTree(t *testing.T) {
 		height   int
 	}
 	tests := []struct {
-		name    string
-		s       *Service
-		args    args
-		want    uuid.UUID
-		wantErr bool
+		name      string
+		s         *Service
+		args      args
+		want      uuid.UUID
+		wantErr   bool
+		setupMock func()
 	}{
 		{
 			name: "1. normal case",
@@ -92,10 +164,136 @@ func TestService_AddTree(t *testing.T) {
 			},
 			want:    id,
 			wantErr: false,
+			setupMock: func() {
+				repoMock.EXPECT().AddTree(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(id, nil)
+			},
+		},
+		{
+			name: "2. repository returns error",
+			s: &Service{
+				repo: repoMock,
+			},
+			args: args{
+				estateID: uuid.New(),
+				x:        10,
+				y:        10,
+				height:   30,
+			},
+			want:    uuid.Nil,
+			wantErr: true,
+			setupMock: func() {
+				repoMock.EXPECT().AddTree(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(uuid.Nil, errors.New("repository error"))
+			},
+		},
+		{
+			name: "3. zero x",
+			s: &Service{
+				repo: repoMock,
+			},
+			args: args{
+				estateID: uuid.New(),
+				x:        0,
+				y:        10,
+				height:   30,
+			},
+			want:      uuid.Nil,
+			wantErr:   true,
+			setupMock: func() {},
+		},
+		{
+			name: "4. zero y",
+			s: &Service{
+				repo: repoMock,
+			},
+			args: args{
+				estateID: uuid.New(),
+				x:        10,
+				y:        0,
+				height:   30,
+			},
+			want:      uuid.Nil,
+			wantErr:   true,
+			setupMock: func() {},
+		},
+		{
+			name: "5. negative x",
+			s: &Service{
+				repo: repoMock,
+			},
+			args: args{
+				estateID: uuid.New(),
+				x:        -1,
+				y:        10,
+				height:   30,
+			},
+			want:      uuid.Nil,
+			wantErr:   true,
+			setupMock: func() {},
+		},
+		{
+			name: "6. negative y",
+			s: &Service{
+				repo: repoMock,
+			},
+			args: args{
+				estateID: uuid.New(),
+				x:        10,
+				y:        -1,
+				height:   30,
+			},
+			want:      uuid.Nil,
+			wantErr:   true,
+			setupMock: func() {},
+		},
+		{
+			name: "7. zero height",
+			s: &Service{
+				repo: repoMock,
+			},
+			args: args{
+				estateID: uuid.New(),
+				x:        10,
+				y:        10,
+				height:   0,
+			},
+			want:      uuid.Nil,
+			wantErr:   true,
+			setupMock: func() {},
+		},
+		{
+			name: "8. height > 30",
+			s: &Service{
+				repo: repoMock,
+			},
+			args: args{
+				estateID: uuid.New(),
+				x:        10,
+				y:        10,
+				height:   31,
+			},
+			want:      uuid.Nil,
+			wantErr:   true,
+			setupMock: func() {},
+		},
+		{
+			name: "8. negative height",
+			s: &Service{
+				repo: repoMock,
+			},
+			args: args{
+				estateID: uuid.New(),
+				x:        10,
+				y:        10,
+				height:   -1,
+			},
+			want:      uuid.Nil,
+			wantErr:   true,
+			setupMock: func() {},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			tt.setupMock()
 			got, err := tt.s.AddTree(tt.args.estateID, tt.args.x, tt.args.y, tt.args.height)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Service.AddTree() error = %v, wantErr %v", err, tt.wantErr)
@@ -132,20 +330,20 @@ func TestService_GetEstateStats(t *testing.T) {
 	}
 
 	repoMock := repository.NewMockRepositoryInterface(ctrl)
-	repoMock.EXPECT().GetTreesByEstate(gomock.Any()).Return(trees, nil)
 
 	type args struct {
 		estateID uuid.UUID
 	}
 	tests := []struct {
-		name    string
-		s       *Service
-		args    args
-		want    int
-		want1   int
-		want2   int
-		want3   int
-		wantErr bool
+		name      string
+		s         *Service
+		args      args
+		want      int
+		want1     int
+		want2     int
+		want3     int
+		wantErr   bool
+		setupMock func()
 	}{
 		{
 			name: "1. normal case",
@@ -160,10 +358,65 @@ func TestService_GetEstateStats(t *testing.T) {
 			want2:   20,
 			want3:   25,
 			wantErr: false,
+			setupMock: func() {
+				repoMock.EXPECT().GetTreesByEstate(gomock.Any()).Return(trees, nil)
+			},
+		},
+		{
+			name: "2. repository returns error",
+			s: &Service{
+				repo: repoMock,
+			},
+			args: args{
+				estateID: estateID,
+			},
+			want:    0,
+			want1:   0,
+			want2:   0,
+			want3:   0,
+			wantErr: true,
+			setupMock: func() {
+				repoMock.EXPECT().GetTreesByEstate(gomock.Any()).Return([]model.Tree{}, errors.New("repository error"))
+			},
+		},
+		{
+			name: "3. estateID not found",
+			s: &Service{
+				repo: repoMock,
+			},
+			args: args{
+				estateID: estateID,
+			},
+			want:    0,
+			want1:   0,
+			want2:   0,
+			want3:   0,
+			wantErr: false,
+			setupMock: func() {
+				repoMock.EXPECT().GetTreesByEstate(gomock.Any()).Return([]model.Tree{}, nil)
+			},
+		},
+		{
+			name: "4. nil estateID",
+			s: &Service{
+				repo: repoMock,
+			},
+			args: args{
+				estateID: uuid.Nil,
+			},
+			want:    0,
+			want1:   0,
+			want2:   0,
+			want3:   0,
+			wantErr: false,
+			setupMock: func() {
+				repoMock.EXPECT().GetTreesByEstate(gomock.Any()).Return([]model.Tree{}, nil)
+			},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			tt.setupMock()
 			got, got1, got2, got3, err := tt.s.GetEstateStats(tt.args.estateID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Service.GetEstateStats() error = %v, wantErr %v", err, tt.wantErr)
@@ -239,9 +492,24 @@ func TestService_GetDronePlanDistance(t *testing.T) {
 			want:    428,
 			wantErr: false,
 		},
+		{
+			name: "2. repository returns error",
+			s: &Service{
+				repo: repoMock,
+			},
+			args: args{
+				estateID: estateID,
+			},
+			want:    0,
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "2. repository returns error" {
+				repoMock.EXPECT().GetEstate(gomock.Any()).Return(&model.Estate{}, errors.New("repository error"))
+			}
+
 			got, err := tt.s.GetDronePlanDistance(tt.args.estateID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Service.GetDronePlanDistance() error = %v, wantErr %v", err, tt.wantErr)
@@ -315,9 +583,29 @@ func TestService_GetDronePlanMaxDistance(t *testing.T) {
 			},
 			wantErr: false,
 		},
+		{
+			name: "2. repository returns error",
+			s: &Service{
+				repo: repoMock,
+			},
+			args: args{
+				estateID:    estateID,
+				maxDistance: 100,
+			},
+			want: 0,
+			want1: model.Coordinate{
+				X: 0,
+				Y: 0,
+			},
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "2. repository returns error" {
+				repoMock.EXPECT().GetEstate(gomock.Any()).Return(&model.Estate{}, errors.New("repository error"))
+			}
+
 			got, got1, err := tt.s.GetDronePlanMaxDistance(tt.args.estateID, tt.args.maxDistance)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Service.GetDronePlanMaxDistance() error = %v, wantErr %v", err, tt.wantErr)

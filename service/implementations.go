@@ -1,6 +1,7 @@
 package service
 
 import (
+	"errors"
 	"fmt"
 	"math"
 	"sort"
@@ -14,10 +15,18 @@ type Plot struct {
 }
 
 func (s *Service) AddEstate(width, length int) (uuid.UUID, error) {
+	if width <= 0 || length <= 0 {
+		return uuid.Nil, errors.New("invalid value")
+	}
+
 	return s.repo.AddEstate(width, length)
 }
 
 func (s *Service) AddTree(estateID uuid.UUID, x, y, height int) (uuid.UUID, error) {
+	if x <= 0 || y <= 0 || height < 1 || height > 30 {
+		return uuid.Nil, errors.New("invalid value")
+	}
+
 	return s.repo.AddTree(estateID, x, y, height)
 }
 
