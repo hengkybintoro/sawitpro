@@ -64,7 +64,7 @@ func TestServer_AddTree(t *testing.T) {
 	id := uuid.New()
 
 	serviceMock := service.NewMockServiceInterface(ctrl)
-	serviceMock.EXPECT().AddEstate(gomock.Any(), gomock.Any()).Return(id, nil).AnyTimes()
+	serviceMock.EXPECT().AddTree(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(id, nil).AnyTimes()
 
 	addTreeReq, _ := http.NewRequest("POST", "/tree", nil)
 	w := httptest.NewRecorder()
