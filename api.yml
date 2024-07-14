@@ -1,0 +1,156 @@
+# This is the OpenAPI specification for your service. It is used to generate the client code.
+# To generate the server code, use the Gradle task `openApiGenerate`. The 
+# generated code will be placed in `build/generate-resources/main`.
+#
+# We will evaluate you based on how well you design your API.
+# 1. How well it follows REST principles.
+# 2. How easy it is to understand and use.
+#
+# References
+# 1. https://swagger.io/specification/
+openapi: "3.0.0"
+info:
+  version: 1.0.0
+  title: User Service
+  license:
+    name: MIT
+servers:
+  - url: http://localhost
+paths:
+  /estate:
+    post:
+      summary: Create an estate
+      operationId: createEstate
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                width:
+                  type: integer
+                  minimum: 1
+                  maximum: 50000
+                length:
+                  type: integer
+                  minimum: 1
+                  maximum: 50000
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+        '400':
+          description: Bad Request
+
+  /estate/{id}/tree:
+    post:
+      summary: Add a tree to an estate
+      operationId: addTree
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                x:
+                  type: integer
+                y:
+                  type: integer
+                height:
+                  type: integer
+                  minimum: 1
+                  maximum: 30
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+
+  /estate/{id}/stats:
+    get:
+      summary: Get estate stats
+      operationId: getEstateStats
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  tree_count:
+                    type: integer
+                  max_height:
+                    type: integer
+                  min_height:
+                    type: integer
+                  median_height:
+                    type: integer
+        '404':
+          description: Not Found
+
+  /estate/{id}/droneplan:
+    get:
+      summary: Get drone monitoring plan
+      operationId: getDronePlan
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: max_distance
+          in: query
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  distance:
+                    type: integer
+                  rest:
+                    type: object
+                    properties:
+                      x:
+                        type: integer
+                      y:
+                        type: integer
+        '404':
+          description: Not Found
